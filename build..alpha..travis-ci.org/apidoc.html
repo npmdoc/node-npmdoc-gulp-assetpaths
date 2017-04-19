@@ -1,0 +1,236 @@
+<div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a
+
+        href="https://github.com/qwales1/gulp-assetpaths"
+
+    >gulp-assetpaths (v0.3.0)</a>
+</h1>
+<h4>A Gulp plugin to change asset paths from one environment to another.</h4>
+<div class="apidocSectionDiv"><a
+    href="#apidoc.tableOfContents"
+    id="apidoc.tableOfContents"
+><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.gulp-assetpaths">module gulp-assetpaths</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.gulp-assetpaths.gulp-assetpaths">
+            function <span class="apidocSignatureSpan"></span>gulp-assetpaths
+            <span class="apidocSignatureSpan">(opts)</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.gulp-assetpaths" id="apidoc.module.gulp-assetpaths">module gulp-assetpaths</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.gulp-assetpaths.gulp-assetpaths" id="apidoc.element.gulp-assetpaths.gulp-assetpaths">
+        function <span class="apidocSignatureSpan"></span>gulp-assetpaths
+        <span class="apidocSignatureSpan">(opts)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">gulp-assetpaths = function (opts){
+
+	&#x27;use strict&#x27;;
+	var rootRegEx;
+
+
+	if (!opts) {
+	 throw new gutil.PluginError(&#x22;gulp-assetpaths&#x22;, &#x22;No parameters supplied&#x22;);
+	}
+	if (!opts.filetypes || (!opts.filetypes instanceof Array)){
+	 throw new gutil.PluginError(&#x22;gulp-assetpaths&#x22;, &#x22;Missing parameter : filetypes&#x22;);
+	}
+	if (typeof(opts.newDomain) !== &#x27;string&#x27; &#x26;&#x26; !opts.newDomain){
+	 throw new gutil.PluginError(&#x22;gulp-assetpaths&#x22;, &#x22;Missing parameter : newDomain&#x22;);
+	}
+	if (!opts.oldDomain){
+	 throw new gutil.PluginError(&#x22;gulp-assetpaths&#x22;, &#x22;Missing parameter : oldDomain&#x22;);
+	}
+	if(typeof(opts.docRoot) !== &#x27;string&#x27; &#x26;&#x26; !opts.docRoot){
+	 throw new gutil.PluginError(&#x22;gulp-assetpaths&#x22;, &#x22;Missing parameter : docRoot&#x22;);
+	}
+
+	var filetypes = new RegExp(&#x27;.&#x27; + opts.filetypes.join(&#x27;|.&#x27;));
+	var rootRegEx = setReplacementDomain(opts.oldDomain);
+	var attrsAndProps = [
+	{ exp : /(&#x3c;\s*)(.*?)\bhref\s*=\s*(([&#x22;{0,1}|&#x27;{0,1}]).*?\4)(.*?)&#x3e;/gi,
+	  captureGroup : 3,
+	  templateCheck : /((\bdownload)(?=(.*?)\bhref\s*=))|((\bhref\s*=)(?=(.*?)\bdownload))/
+	},
+	{ exp : /((\bbackground|\bbackground-image)\s*:\s*?.*){0,1}\burl\s*((\(\s*[^\w]{0,1}([&#x22;{0,1}&#x27;{0,1}]{0,1})).*?\5\))/gi,
+	  captureGroup : 3,
+	  templateCheck : /((\bbackground|\bbackground-image)\s*:\s*?.*)\burl\s*\(.*?\)/
+	},
+	{ exp : /((&#x3c;\s*){0,1}\bscript)(.*?)\bsrc\s*=\s*(([&#x22;{0,1}|&#x27;{0,1}]).*?\5)/gi,
+	  captureGroup : 4,
+	  templateCheck : /(&#x3c;\s*){0,1}(\bscript)(.*?)\bsrc\s*=\s*/
+	},
+	{ exp : /((&#x3c;\s*){0,1}\bimg)(.*?)\bsrc\s*=\s*(([&#x22;{0,1}|&#x27;{0,1}]).*?\5)/gi,
+	  captureGroup : 4,
+	  templateCheck : /(&#x3c;\s*){0,1}(\bimg)(.*?)\bsrc\s*=\s*/
+	},
+	{ exp: /(:\s*(&#x22;(.*?)&#x22;))/gi,
+	  captureGroup : 2,
+	  templateCheck: false
+	}];
+
+	//create custom attributes expressions
+	if(opts.customAttributes){
+		var customAttrs = opts.customAttributes.map(function(attr){
+			return {
+				exp: new RegExp(&#x22;\\b&#x22; + attr + &#x22;\\s*=\\s*(([\&#x22;{0,1}|&#x27;{0,1}]).*\\2)&#x22;, &#x22;gi&#x22;),
+				captureGroup: 1,
+				templateCheck: /.*/
+			}
+		});
+		attrsAndProps = attrsAndProps.concat(customAttrs);
+	}
+
+	function setReplacementDomain(string){
+ 		if(isRelative(opts.oldDomain)){
+			return new RegExp(&#x27;(((\\bhttp\|\\bhttps):){0,1}\\/\\/&#x27; + string + &#x27;)&#x27;);
+		} else {
+			return new RegExp(string);
+		}
+
+	}
+
+	function isRelative(string, insertIndex){
+		return (string.indexOf(&#x27;/&#x27;) === -1 || string.indexOf(&#x27;/&#x27;) &#x3e; insertIndex);
+	}
+	
+	function getInsertIndex(string){
+		if(string.search(/^.{0,1}\s*(&#x22;|&#x27;)/) !== -1){
+			//check to see if template not using interpolated strings
+			var nonInter = /[&#x22;|&#x27;]\s*[+|.][^.]/.exec(string);
+			if(nonInter){
+				return string.search(/&#x22;|&#x27;/) === nonInter.index ? nonInter.index : (nonInter.index-1)
+			}
+			return (string.search(/&#x22;|&#x27;/)+1);
+		}
+		return 1;
+	}
+
+	function insertAtIndex(string, fragment, index){
+		return [string.slice(0, index), fragment, string.slice(index)].join(&#x22;&#x22;);
+	}
+
+	function ignoreUrl(match){
+		var regEx = /((\bhttp|\bhttps):){0,1}\/\//;
+		if(regEx.test(match)){
+			if((rootRegEx !== null) &#x26;&#x26; (!rootRegEx.test(match))){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function replacementCheck(cGroup, match, regEx){
+		if(!opts.templates){
+			return filetypes.test(cGroup);
+		}
+		if(regEx.templateCheck){
+			return filetypes.test(cGroup) || regEx.templateCheck.test(match);
+		} else {
+			return filetypes.test(cGroup);
+		}
+	}
+
+	function processLine(line, regEx, file){
+		line = line.replace(regEx.exp, function(match){
+			var cGroup = arguments[regEx.captureGroup];
+			if(replacementCheck(cGroup, match, regEx)){
+				if(!ignoreUrl(cGroup)){
+					return match.replace(cGroup, function(match){
+						match = match.replace(rootRegEx, &#x22;&#x22;).trim();
+						return insertPath(match,file);
+					});
+				}
+			}
+			return match;
+		});
+	//pass back line if noop
+	return line;
+ }
+
+	function countRelativeDirs(path){
+		var relDirs = path.filter(function(dir){
+			return dir.indexOf(&#x27;..&#x27;) !== -1 ? true : false;
+		});
+		return relDirs.length;
+	}
+
+	function anchorToRoot(string, file){
+		var index = getInsertIndex(string);
+		if(isRelative(string,index)){
+			//if the path isn&#x27;t being dynamically generated(i.e. server or in template)
+			if(!(/^\s*[\(]{0,1}\s*[&#x22;|&#x27;]{0,1}\s*[&#x3c;|{|.|+][^.]/.tes ...</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
